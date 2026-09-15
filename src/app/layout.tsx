@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-const interFont = Inter({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-dm-sans' })
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
   title: 'Onboarding',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={interFont.variable}>
+    <html lang="en" className={inter.variable}>
       <body>{children}</body>
     </html>
   )
