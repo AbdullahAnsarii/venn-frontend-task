@@ -50,7 +50,7 @@ export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
         <TextField
           label="Corporation Number"
           inputMode="numeric"
-          hint={isCheckingCorporationNumber ? 'Checking corporation number…' : undefined}
+          loading={isCheckingCorporationNumber}
           error={errors.corporationNumber?.message}
           {...fields.corporationNumber}
         />
@@ -60,8 +60,14 @@ export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
           {formError}
         </p>
       )}
-      <Button type="submit" className={styles.submit} disabled={!canSubmit} loading={isSubmitting}>
-        {isSubmitting ? 'Submitting…' : 'Submit'} <ArrowRightIcon />
+      <Button
+        type="submit"
+        className={styles.submit}
+        disabled={!canSubmit}
+        loading={isSubmitting}
+        icon={<ArrowRightIcon />}
+      >
+        Submit
       </Button>
     </form>
   )

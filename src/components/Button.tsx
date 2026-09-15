@@ -1,11 +1,20 @@
-import type { ComponentProps } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
+import { Spinner } from './Spinner'
 import styles from './Button.module.css'
 
 type ButtonProps = ComponentProps<'button'> & {
   loading?: boolean
+  icon?: ReactNode
 }
 
-export function Button({ loading = false, disabled, className, children, ...props }: ButtonProps) {
+export function Button({
+  loading = false,
+  icon,
+  disabled,
+  className,
+  children,
+  ...props
+}: ButtonProps) {
   return (
     <button
       className={className ? `${styles.button} ${className}` : styles.button}
@@ -14,6 +23,7 @@ export function Button({ loading = false, disabled, className, children, ...prop
       {...props}
     >
       {children}
+      {loading ? <Spinner /> : icon}
     </button>
   )
 }

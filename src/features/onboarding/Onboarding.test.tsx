@@ -149,7 +149,7 @@ describe('onboarding form', () => {
     await user.clear(corporationNumber)
     await user.type(corporationNumber, '000000000')
     await user.tab()
-    expect(await screen.findByRole('status')).toHaveTextContent('Checking corporation number…')
+    expect(await screen.findByRole('status')).toHaveTextContent(/checking/i)
     expect(await screen.findByText('Invalid corporation number')).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(corporationNumber).toHaveAttribute('aria-invalid', 'true')
