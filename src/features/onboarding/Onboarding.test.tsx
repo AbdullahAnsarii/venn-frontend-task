@@ -2,7 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it, vi } from 'vitest'
-import { profileDetailsUrl, server, VALID_CORPORATION_NUMBER } from '@/test/server'
+import {
+  corporationNumberUrl,
+  profileDetailsUrl,
+  server,
+  VALID_CORPORATION_NUMBER,
+} from '@/test/server'
 import { Onboarding } from './Onboarding'
 
 const validDetails = {
@@ -32,6 +37,22 @@ async function fillForm(form: Form, details = validDetails) {
   await form.user.type(form.phone, details.phone)
   await form.user.type(form.corporationNumber, details.corporationNumber)
 }
+
+function trackLookups(respond: (number: string) => Response | Promise<Response>) {
+  const lookups: string[] = []
+  server.use(
+    http.get(corporationNumberUrl, ({ params }) => {
+      lookups.push(String(params.number))
+      return respond(String(params.number))
+    }),
+  )
+  return lookups
+}
+
+const invalidResponse = () =>
+  HttpResponse.json({ valid: false, message: 'Invalid corporation number' }, { status: 404 })
+const validResponse = (number: string) =>
+  HttpResponse.json({ corporationNumber: number, valid: true })
 
 describe('onboarding form', () => {
   it('shows required errors and focuses the first field on empty submit', async () => {
@@ -94,7 +115,85 @@ describe('onboarding form', () => {
     await waitFor(() => expect(phone).not.toHaveAttribute('aria-invalid'))
   })
 
+  it('checks the corporation number with the api once it has 9 digits', async () => {
+    const lookups = trackLookups(async () => {
+      await delay(50)
+      return invalidResponse()
+    })
+    const { user, corporationNumber } = renderOnboarding()
+
+    await user.type(corporationNumber, '12345')
+    await user.tab()
+    expect(
+      await screen.findByText('Corporation number must be exactly 9 digits'),
+    ).toBeInTheDocument()
+    expect(lookups).toEqual([])
+
+    await user.clear(corporationNumber)
+    await user.type(corporationNumber, '000000000')
+    await user.tab()
+    expect(await screen.findByRole('status')).toHaveTextContent('Checking corporation number…')
+    expect(await screen.findByText('Invalid corporation number')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(corporationNumber).toHaveAttribute('aria-invalid', 'true')
+    expect(lookups).toEqual(['000000000'])
+  })
+
+  it('does not refetch a corporation number it already checked', async () => {
+    const lookups = trackLookups(invalidResponse)
+    const { user, corporationNumber } = renderOnboarding()
+
+    await user.type(corporationNumber, '000000000')
+    await user.tab()
+    expect(await screen.findByText('Invalid corporation number')).toBeInTheDocument()
+
+    await user.click(corporationNumber)
+    await user.tab()
+    expect(await screen.findByText('Invalid corporation number')).toBeInTheDocument()
+    expect(lookups).toEqual(['000000000'])
+  })
+
+  it('ignores a stale lookup response', async () => {
+    const lookups = trackLookups(async (number) => {
+      if (number === '111111111') {
+        await delay(300)
+        return invalidResponse()
+      }
+      return validResponse(number)
+    })
+    const { user, corporationNumber } = renderOnboarding()
+
+    await user.type(corporationNumber, '111111111')
+    await user.tab()
+    await user.clear(corporationNumber)
+    await user.type(corporationNumber, '222222222')
+    await user.tab()
+
+    await waitFor(() => expect(lookups).toEqual(['111111111', '222222222']))
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    expect(screen.queryByText('Invalid corporation number')).not.toBeInTheDocument()
+    expect(corporationNumber).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('shows an error when the lookup fails and retries on the next blur', async () => {
+    server.use(http.get(corporationNumberUrl, () => HttpResponse.error()))
+    const { user, corporationNumber } = renderOnboarding()
+
+    await user.type(corporationNumber, VALID_CORPORATION_NUMBER)
+    await user.tab()
+    expect(
+      await screen.findByText("We couldn't verify the corporation number. Please try again."),
+    ).toBeInTheDocument()
+
+    const lookups = trackLookups(validResponse)
+    await user.click(corporationNumber)
+    await user.tab()
+    await waitFor(() => expect(lookups).toEqual([VALID_CORPORATION_NUMBER]))
+    await waitFor(() => expect(corporationNumber).not.toHaveAttribute('aria-invalid'))
+  })
+
   it('submits and moves on to step 2', async () => {
+    const lookups = trackLookups(validResponse)
     let submitted: unknown
     server.use(
       http.post(profileDetailsUrl, async ({ request }) => {
@@ -112,6 +211,41 @@ describe('onboarding form', () => {
     expect(await screen.findByText('Step 2 of 5')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Profile saved' })).toHaveFocus()
     expect(submitted).toEqual(validDetails)
+    expect(lookups).toEqual([VALID_CORPORATION_NUMBER])
+  })
+
+  it('shows a 400 message under the matching field', async () => {
+    server.use(
+      http.post(profileDetailsUrl, () =>
+        HttpResponse.json({ message: 'Invalid phone number' }, { status: 400 }),
+      ),
+    )
+    const form = renderOnboarding()
+
+    await fillForm(form)
+    await form.user.click(form.submitButton)
+
+    expect(await screen.findByText('Invalid phone number')).toBeInTheDocument()
+    expect(form.phone).toHaveAttribute('aria-invalid', 'true')
+    expect(form.phone).toHaveAccessibleDescription('Invalid phone number')
+    expect(form.phone).toHaveFocus()
+    expect(screen.getByText('Step 1 of 5')).toBeInTheDocument()
+    expect(form.submitButton).toBeEnabled()
+  })
+
+  it('shows other 400 messages above the button', async () => {
+    server.use(
+      http.post(profileDetailsUrl, () =>
+        HttpResponse.json({ message: 'Missing required fields' }, { status: 400 }),
+      ),
+    )
+    const form = renderOnboarding()
+
+    await fillForm(form)
+    await form.user.click(form.submitButton)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Missing required fields')
+    expect(form.phone).not.toHaveAttribute('aria-invalid')
   })
 
   it('does not submit with an invalid corporation number', async () => {
