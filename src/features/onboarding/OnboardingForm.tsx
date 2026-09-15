@@ -67,7 +67,7 @@ export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
         loading={isSubmitting}
         icon={<ArrowRightIcon />}
       >
-        Submit
+        {isSubmitting ? 'Submitting' : 'Submit'}
       </Button>
     </form>
   )
