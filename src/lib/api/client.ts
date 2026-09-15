@@ -14,13 +14,15 @@ export class ApiError extends Error {
 type RequestOptions = {
   method?: 'GET' | 'POST'
   body?: unknown
+  signal?: AbortSignal
 }
 
-export function request(path: string, { method = 'GET', body }: RequestOptions = {}) {
+export function request(path: string, { method = 'GET', body, signal }: RequestOptions = {}) {
   return fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal,
   })
 }
 

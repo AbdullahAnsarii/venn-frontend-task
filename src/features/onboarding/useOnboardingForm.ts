@@ -33,7 +33,11 @@ export function useOnboardingForm({ onSubmitted }: Options) {
   const [formError, setFormError] = useState<string | null>(null)
 
   const verifyCorporationNumber = async ({ focus = false } = {}) => {
-    const check = await corporationNumber.validate(getValues('corporationNumber'))
+    const number = getValues('corporationNumber')
+    const check = await corporationNumber.validate(number)
+    if (check.status === 'superseded' || getValues('corporationNumber') !== number) {
+      return false
+    }
     if (check.status === 'valid') {
       return true
     }
