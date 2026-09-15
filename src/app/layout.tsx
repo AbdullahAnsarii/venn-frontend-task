@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { DM_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-const dmSans = DM_Sans({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-dm-sans' })
+const interFont = Inter({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-dm-sans' })
 
 export const metadata: Metadata = {
   title: 'Onboarding',
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={dmSans.variable}>
+    <html lang="en" className={interFont.variable}>
       <body>{children}</body>
     </html>
   )
