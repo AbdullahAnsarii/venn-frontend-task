@@ -12,7 +12,8 @@ type OnboardingFormProps = {
 }
 
 export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
-  const { fields, errors, isSubmitting, formError, submit } = useOnboardingForm({ onSubmitted })
+  const { fields, errors, isSubmitting, isCheckingCorporationNumber, formError, submit } =
+    useOnboardingForm({ onSubmitted })
 
   return (
     <form className={layout.card} onSubmit={submit} noValidate>
@@ -42,6 +43,7 @@ export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
         <TextField
           label="Corporation Number"
           inputMode="numeric"
+          hint={isCheckingCorporationNumber ? 'Checking corporation number…' : undefined}
           error={errors.corporationNumber?.message}
           {...fields.corporationNumber}
         />

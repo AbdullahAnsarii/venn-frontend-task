@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { ApiError } from '@/lib/api/client'
 import { submitProfileDetails } from '@/lib/api/profileDetails'
 import { onboardingSchema, type OnboardingValues } from './onboardingSchema'
+import { useCorporationNumberValidation } from './useCorporationNumberValidation'
 
 const defaultValues: OnboardingValues = {
   firstName: '',
@@ -12,6 +13,8 @@ const defaultValues: OnboardingValues = {
   corporationNumber: '',
 }
 
+const CORPORATION_NUMBER_UNAVAILABLE =
+  "We couldn't verify the corporation number. Please try again."
 const SUBMIT_FAILED = 'Something went wrong while submitting. Please try again.'
 
 type Options = {
@@ -19,16 +22,43 @@ type Options = {
 }
 
 export function useOnboardingForm({ onSubmitted }: Options) {
-  const { register, handleSubmit, formState } = useForm<OnboardingValues>({
-    resolver: zodResolver(onboardingSchema),
-    defaultValues,
-    mode: 'onBlur',
-    reValidateMode: 'onBlur',
-  })
+  const { register, handleSubmit, trigger, getValues, setError, formState } =
+    useForm<OnboardingValues>({
+      resolver: zodResolver(onboardingSchema),
+      defaultValues,
+      mode: 'onBlur',
+      reValidateMode: 'onBlur',
+    })
+  const corporationNumber = useCorporationNumberValidation()
   const [formError, setFormError] = useState<string | null>(null)
+
+  const verifyCorporationNumber = async ({ focus = false } = {}) => {
+    const check = await corporationNumber.validate(getValues('corporationNumber'))
+    if (check.status === 'valid') {
+      return true
+    }
+    setError(
+      'corporationNumber',
+      {
+        type: 'server',
+        message: check.status === 'invalid' ? check.message : CORPORATION_NUMBER_UNAVAILABLE,
+      },
+      { shouldFocus: focus },
+    )
+    return false
+  }
+
+  const handleCorporationNumberBlur = async () => {
+    if (await trigger('corporationNumber')) {
+      await verifyCorporationNumber()
+    }
+  }
 
   const submit = handleSubmit(async (values) => {
     setFormError(null)
+    if (!(await verifyCorporationNumber({ focus: true }))) {
+      return
+    }
     try {
       await submitProfileDetails(values)
       onSubmitted()
@@ -42,10 +72,11 @@ export function useOnboardingForm({ onSubmitted }: Options) {
       firstName: register('firstName'),
       lastName: register('lastName'),
       phone: register('phone'),
-      corporationNumber: register('corporationNumber'),
+      corporationNumber: register('corporationNumber', { onBlur: handleCorporationNumberBlur }),
     },
     errors: formState.errors,
     isSubmitting: formState.isSubmitting,
+    isCheckingCorporationNumber: corporationNumber.isChecking,
     formError,
     submit,
   }
