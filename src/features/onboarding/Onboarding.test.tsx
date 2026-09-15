@@ -79,7 +79,7 @@ describe('onboarding form', () => {
         'Enter the number as +1 followed by 10 digits, with no spaces or dashes',
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Corporation number must be exactly 9 digits')).toBeInTheDocument()
+    expect(screen.getByText('Corporation number must be exactly 9 characters')).toBeInTheDocument()
     expect(form.phone).toHaveFocus()
   })
 
@@ -130,7 +130,7 @@ describe('onboarding form', () => {
     await waitFor(() => expect(phone).not.toHaveAttribute('aria-invalid'))
   })
 
-  it('checks the corporation number with the api once it has 9 digits', async () => {
+  it('checks the corporation number with the api once it has 9 characters', async () => {
     const lookups = trackLookups(async () => {
       await delay(50)
       return invalidResponse()
@@ -140,7 +140,7 @@ describe('onboarding form', () => {
     await user.type(corporationNumber, '12345')
     await user.tab()
     expect(
-      await screen.findByText('Corporation number must be exactly 9 digits'),
+      await screen.findByText('Corporation number must be exactly 9 characters'),
     ).toBeInTheDocument()
     expect(lookups).toEqual([])
 

@@ -22,7 +22,7 @@ export const onboardingSchema = z.object({
   corporationNumber: z
     .string()
     .min(1, 'Corporation number is required')
-    .regex(/^\d{9}$/, 'Corporation number must be exactly 9 digits'),
+    .length(9, 'Corporation number must be exactly 9 characters'),
 })
 
 export type OnboardingValues = z.infer<typeof onboardingSchema>
