@@ -37,8 +37,8 @@ export function useOnboardingForm({ onSubmitted }: Options) {
     useForm<OnboardingValues>({
       resolver: zodResolver(onboardingSchema),
       defaultValues,
-      mode: 'onBlur',
-      reValidateMode: 'onBlur',
+      mode: 'onTouched',
+      reValidateMode: 'onChange',
     })
   const corporationNumber = useCorporationNumberValidation()
   const [formError, setFormError] = useState<string | null>(null)
