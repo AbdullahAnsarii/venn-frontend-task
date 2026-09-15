@@ -55,16 +55,33 @@ const validResponse = (number: string) =>
   HttpResponse.json({ corporationNumber: number, valid: true })
 
 describe('onboarding form', () => {
-  it('shows required errors and focuses the first field on empty submit', async () => {
-    const { user, firstName, submitButton } = renderOnboarding()
+  it('keeps submit disabled until every field is filled', async () => {
+    const form = renderOnboarding()
 
-    await user.click(submitButton)
+    expect(form.submitButton).toBeDisabled()
 
-    expect(await screen.findByText('First name is required')).toBeInTheDocument()
-    expect(screen.getByText('Last name is required')).toBeInTheDocument()
-    expect(screen.getByText('Phone number is required')).toBeInTheDocument()
-    expect(screen.getByText('Corporation number is required')).toBeInTheDocument()
-    expect(firstName).toHaveFocus()
+    await form.user.type(form.firstName, 'Hello')
+    await form.user.type(form.lastName, 'World')
+    await form.user.type(form.phone, '+13062776103')
+    expect(form.submitButton).toBeDisabled()
+
+    await form.user.type(form.corporationNumber, '1')
+    expect(form.submitButton).toBeEnabled()
+  })
+
+  it('shows errors and focuses the first invalid field on submit', async () => {
+    const form = renderOnboarding()
+
+    await fillForm(form, { ...validDetails, phone: '3062776103', corporationNumber: '12' })
+    await form.user.click(form.submitButton)
+
+    expect(
+      await screen.findByText(
+        'Enter the number as +1 followed by 10 digits, with no spaces or dashes',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Corporation number must be exactly 9 digits')).toBeInTheDocument()
+    expect(form.phone).toHaveFocus()
   })
 
   it('validates names on blur', async () => {

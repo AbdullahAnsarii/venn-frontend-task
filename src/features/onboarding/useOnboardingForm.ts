@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { ApiError } from '@/lib/api/client'
 import { submitProfileDetails } from '@/lib/api/profileDetails'
 import { onboardingSchema, type OnboardingValues } from './onboardingSchema'
@@ -33,7 +33,7 @@ type Options = {
 }
 
 export function useOnboardingForm({ onSubmitted }: Options) {
-  const { register, handleSubmit, trigger, getValues, setError, formState } =
+  const { register, handleSubmit, trigger, getValues, setError, control, formState } =
     useForm<OnboardingValues>({
       resolver: zodResolver(onboardingSchema),
       defaultValues,
@@ -42,6 +42,11 @@ export function useOnboardingForm({ onSubmitted }: Options) {
     })
   const corporationNumber = useCorporationNumberValidation()
   const [formError, setFormError] = useState<string | null>(null)
+  const values = useWatch({
+    control,
+    name: ['firstName', 'lastName', 'phone', 'corporationNumber'],
+  })
+  const canSubmit = values.every((value) => value.trim() !== '')
 
   const verifyCorporationNumber = async ({ focus = false } = {}) => {
     const number = getValues('corporationNumber')
@@ -97,6 +102,7 @@ export function useOnboardingForm({ onSubmitted }: Options) {
       corporationNumber: register('corporationNumber', { onBlur: handleCorporationNumberBlur }),
     },
     errors: formState.errors,
+    canSubmit,
     isSubmitting: formState.isSubmitting,
     isCheckingCorporationNumber: corporationNumber.isChecking,
     formError,

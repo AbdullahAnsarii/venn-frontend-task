@@ -12,8 +12,15 @@ type OnboardingFormProps = {
 }
 
 export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
-  const { fields, errors, isSubmitting, isCheckingCorporationNumber, formError, submit } =
-    useOnboardingForm({ onSubmitted })
+  const {
+    fields,
+    errors,
+    canSubmit,
+    isSubmitting,
+    isCheckingCorporationNumber,
+    formError,
+    submit,
+  } = useOnboardingForm({ onSubmitted })
 
   return (
     <form className={layout.card} onSubmit={submit} noValidate>
@@ -53,7 +60,7 @@ export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
           {formError}
         </p>
       )}
-      <Button type="submit" className={styles.submit} loading={isSubmitting}>
+      <Button type="submit" className={styles.submit} disabled={!canSubmit} loading={isSubmitting}>
         {isSubmitting ? 'Submitting…' : 'Submit'} <ArrowRightIcon />
       </Button>
     </form>
