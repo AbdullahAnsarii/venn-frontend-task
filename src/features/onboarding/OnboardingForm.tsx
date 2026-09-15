@@ -1,23 +1,58 @@
+'use client'
+
 import { ArrowRightIcon } from '@/components/ArrowRightIcon'
 import { Button } from '@/components/Button'
 import { TextField } from '@/components/TextField'
 import layout from './Onboarding.module.css'
 import styles from './OnboardingForm.module.css'
+import { useOnboardingForm } from './useOnboardingForm'
 
-export function OnboardingForm() {
+type OnboardingFormProps = {
+  onSubmitted: () => void
+}
+
+export function OnboardingForm({ onSubmitted }: OnboardingFormProps) {
+  const { fields, errors, isSubmitting, formError, submit } = useOnboardingForm({ onSubmitted })
+
   return (
-    <form className={layout.card} noValidate>
+    <form className={layout.card} onSubmit={submit} noValidate>
       <h1 className={layout.title}>Onboarding Form</h1>
       <div className={styles.fields}>
         <div className={styles.row}>
-          <TextField label="First Name" name="firstName" autoComplete="given-name" />
-          <TextField label="Last Name" name="lastName" autoComplete="family-name" />
+          <TextField
+            label="First Name"
+            autoComplete="given-name"
+            error={errors.firstName?.message}
+            {...fields.firstName}
+          />
+          <TextField
+            label="Last Name"
+            autoComplete="family-name"
+            error={errors.lastName?.message}
+            {...fields.lastName}
+          />
         </div>
-        <TextField label="Phone Number" name="phone" type="tel" autoComplete="tel" />
-        <TextField label="Corporation Number" name="corporationNumber" inputMode="numeric" />
+        <TextField
+          label="Phone Number"
+          type="tel"
+          autoComplete="tel"
+          error={errors.phone?.message}
+          {...fields.phone}
+        />
+        <TextField
+          label="Corporation Number"
+          inputMode="numeric"
+          error={errors.corporationNumber?.message}
+          {...fields.corporationNumber}
+        />
       </div>
-      <Button type="submit" className={styles.submit}>
-        Submit <ArrowRightIcon />
+      {formError && (
+        <p className={styles.formError} role="alert">
+          {formError}
+        </p>
+      )}
+      <Button type="submit" className={styles.submit} loading={isSubmitting}>
+        {isSubmitting ? 'Submitting…' : 'Submit'} <ArrowRightIcon />
       </Button>
     </form>
   )

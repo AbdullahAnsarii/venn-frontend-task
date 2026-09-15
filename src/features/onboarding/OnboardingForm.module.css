@@ -9,6 +9,11 @@
   gap: 28px;
 }
 
+.formError {
+  margin: 24px 0 0;
+  color: var(--color-error);
+}
+
 .submit {
   width: 100%;
   margin-top: 36px;
