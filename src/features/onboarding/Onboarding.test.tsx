@@ -56,18 +56,16 @@ const validResponse = (number: string) =>
   HttpResponse.json({ corporationNumber: number, valid: true })
 
 describe('onboarding form', () => {
-  it('keeps submit disabled until every field is filled', async () => {
-    const form = renderOnboarding()
+  it('shows required errors and focuses the first field on empty submit', async () => {
+    const { user, firstName, submitButton } = renderOnboarding()
 
-    expect(form.submitButton).toBeDisabled()
+    await user.click(submitButton)
 
-    await form.user.type(form.firstName, 'Hello')
-    await form.user.type(form.lastName, 'World')
-    await form.user.type(form.phone, '3062776103')
-    expect(form.submitButton).toBeDisabled()
-
-    await form.user.type(form.corporationNumber, '1')
-    expect(form.submitButton).toBeEnabled()
+    expect(await screen.findByText('First name is required')).toBeInTheDocument()
+    expect(screen.getByText('Last name is required')).toBeInTheDocument()
+    expect(screen.getByText('Phone number is required')).toBeInTheDocument()
+    expect(screen.getByText('Corporation number is required')).toBeInTheDocument()
+    expect(firstName).toHaveFocus()
   })
 
   it('shows errors and focuses the first invalid field on submit', async () => {
