@@ -1,5 +1,11 @@
+import { z } from 'zod'
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://fe-hometask-api.qa.vault.tryvault.com'
+
+const REQUEST_TIMEOUT_MS = 10_000
+
+const errorBody = z.object({ message: z.string() })
 
 export class ApiError extends Error {
   readonly status: number
@@ -17,20 +23,30 @@ type RequestOptions = {
   signal?: AbortSignal
 }
 
-export function request(path: string, { method = 'GET', body, signal }: RequestOptions = {}) {
-  return fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal,
-  })
+export async function request(path: string, { method = 'GET', body, signal }: RequestOptions = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  if (signal?.aborted) {
+    controller.abort()
+  }
+  signal?.addEventListener('abort', () => controller.abort(), { once: true })
+
+  try {
+    return await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: controller.signal,
+    })
+  } finally {
+    clearTimeout(timer)
+  }
 }
 
 export async function errorFromResponse(response: Response) {
-  const data = (await response.json().catch(() => null)) as { message?: unknown } | null
-  const message =
-    typeof data?.message === 'string'
-      ? data.message
-      : `Request failed with status ${response.status}`
+  const parsed = errorBody.safeParse(await response.json().catch(() => null))
+  const message = parsed.success
+    ? parsed.data.message
+    : `Request failed with status ${response.status}`
   return new ApiError(response.status, message)
 }

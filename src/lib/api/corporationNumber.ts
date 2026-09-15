@@ -1,7 +1,12 @@
+import { z } from 'zod'
 import { errorFromResponse, request } from './client'
 
-export type CorporationNumberResult =
-  { valid: true; corporationNumber: string } | { valid: false; message: string }
+const corporationNumberResult = z.discriminatedUnion('valid', [
+  z.object({ valid: z.literal(true), corporationNumber: z.string() }),
+  z.object({ valid: z.literal(false), message: z.string() }),
+])
+
+export type CorporationNumberResult = z.infer<typeof corporationNumberResult>
 
 export async function checkCorporationNumber(
   number: string,
@@ -9,7 +14,7 @@ export async function checkCorporationNumber(
 ): Promise<CorporationNumberResult> {
   const response = await request(`/corporation-number/${encodeURIComponent(number)}`, { signal })
   if (response.ok || response.status === 404) {
-    return response.json()
+    return corporationNumberResult.parse(await response.json())
   }
   throw await errorFromResponse(response)
 }

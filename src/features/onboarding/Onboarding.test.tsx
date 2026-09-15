@@ -209,6 +209,18 @@ describe('onboarding form', () => {
     await waitFor(() => expect(corporationNumber).not.toHaveAttribute('aria-invalid'))
   })
 
+  it('treats an unexpected lookup response as a failed check', async () => {
+    server.use(http.get(corporationNumberUrl, () => HttpResponse.json({ ok: true })))
+    const { user, corporationNumber } = renderOnboarding()
+
+    await user.type(corporationNumber, VALID_CORPORATION_NUMBER)
+    await user.tab()
+
+    expect(
+      await screen.findByText("We couldn't verify the corporation number. Please try again."),
+    ).toBeInTheDocument()
+  })
+
   it('submits and moves on to step 2', async () => {
     const lookups = trackLookups(validResponse)
     let submitted: unknown
