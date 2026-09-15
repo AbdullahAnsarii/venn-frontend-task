@@ -8,6 +8,7 @@ import {
   server,
   VALID_CORPORATION_NUMBER,
 } from '@/test/server'
+import { PHONE_PREFIX } from '@/lib/phone'
 import { Onboarding } from './Onboarding'
 
 const validDetails = {
@@ -34,7 +35,7 @@ type Form = ReturnType<typeof renderOnboarding>
 async function fillForm(form: Form, details = validDetails) {
   await form.user.type(form.firstName, details.firstName)
   await form.user.type(form.lastName, details.lastName)
-  await form.user.type(form.phone, details.phone)
+  await form.user.type(form.phone, details.phone.replace(PHONE_PREFIX, ''))
   await form.user.type(form.corporationNumber, details.corporationNumber)
 }
 
@@ -62,7 +63,7 @@ describe('onboarding form', () => {
 
     await form.user.type(form.firstName, 'Hello')
     await form.user.type(form.lastName, 'World')
-    await form.user.type(form.phone, '+13062776103')
+    await form.user.type(form.phone, '3062776103')
     expect(form.submitButton).toBeDisabled()
 
     await form.user.type(form.corporationNumber, '1')
@@ -72,7 +73,7 @@ describe('onboarding form', () => {
   it('shows errors and focuses the first invalid field on submit', async () => {
     const form = renderOnboarding()
 
-    await fillForm(form, { ...validDetails, phone: '3062776103', corporationNumber: '12' })
+    await fillForm(form, { ...validDetails, phone: '306 277 6103', corporationNumber: '12' })
     await form.user.click(form.submitButton)
 
     expect(
@@ -111,24 +112,23 @@ describe('onboarding form', () => {
       await user.tab()
     }
 
-    await attempt('3062776103')
+    expect(phone).toHaveValue('+1')
+
+    await user.clear(phone)
+    expect(phone).toHaveValue('+1')
+
+    await attempt('306 277 6103')
     expect(
       await screen.findByText(
         'Enter the number as +1 followed by 10 digits, with no spaces or dashes',
       ),
     ).toBeInTheDocument()
 
-    await attempt('+1 306 277 6103')
-    expect(
-      await screen.findByText(
-        'Enter the number as +1 followed by 10 digits, with no spaces or dashes',
-      ),
-    ).toBeInTheDocument()
-
-    await attempt('+12065550123')
+    await attempt('2065550123')
     expect(await screen.findByText('Only Canadian phone numbers are accepted')).toBeInTheDocument()
 
-    await attempt('+13062776103')
+    await attempt('3062776103')
+    expect(phone).toHaveValue('+13062776103')
     await waitFor(() => expect(phone).not.toHaveAttribute('aria-invalid'))
   })
 

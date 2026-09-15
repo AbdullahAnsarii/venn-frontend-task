@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isCanadianPhoneNumber } from '@/lib/phone'
+import { isCanadianPhoneNumber, PHONE_PREFIX } from '@/lib/phone'
 
 export const NAME_MAX_LENGTH = 50
 
@@ -16,6 +16,7 @@ export const onboardingSchema = z.object({
   phone: z
     .string()
     .min(1, 'Phone number is required')
+    .refine((value) => value !== PHONE_PREFIX, 'Phone number is required')
     .regex(/^\+1\d{10}$/, 'Enter the number as +1 followed by 10 digits, with no spaces or dashes')
     .refine(isCanadianPhoneNumber, 'Only Canadian phone numbers are accepted'),
   corporationNumber: z

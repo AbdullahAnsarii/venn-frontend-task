@@ -1,15 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { ApiError } from '@/lib/api/client'
 import { submitProfileDetails } from '@/lib/api/profileDetails'
+import { PHONE_PREFIX } from '@/lib/phone'
 import { onboardingSchema, type OnboardingValues } from './onboardingSchema'
 import { useCorporationNumberValidation } from './useCorporationNumberValidation'
 
 const defaultValues: OnboardingValues = {
   firstName: '',
   lastName: '',
-  phone: '',
+  phone: PHONE_PREFIX,
   corporationNumber: '',
 }
 
@@ -33,7 +34,7 @@ type Options = {
 }
 
 export function useOnboardingForm({ onSubmitted }: Options) {
-  const { register, handleSubmit, trigger, getValues, setError, control, formState } =
+  const { register, handleSubmit, trigger, getValues, setValue, setError, control, formState } =
     useForm<OnboardingValues>({
       resolver: zodResolver(onboardingSchema),
       defaultValues,
@@ -46,7 +47,7 @@ export function useOnboardingForm({ onSubmitted }: Options) {
     control,
     name: ['firstName', 'lastName', 'phone', 'corporationNumber'],
   })
-  const canSubmit = values.every((value) => value.trim() !== '')
+  const canSubmit = values.every((value) => value.trim() !== '' && value !== PHONE_PREFIX)
 
   const verifyCorporationNumber = async ({ focus = false } = {}) => {
     const number = getValues('corporationNumber')
@@ -66,6 +67,13 @@ export function useOnboardingForm({ onSubmitted }: Options) {
       { shouldFocus: focus },
     )
     return false
+  }
+
+  const keepPhonePrefix = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value
+    if (!value.startsWith(PHONE_PREFIX)) {
+      setValue('phone', PHONE_PREFIX + value.replace(/^\+?1?/, ''))
+    }
   }
 
   const handleCorporationNumberBlur = async () => {
@@ -98,7 +106,7 @@ export function useOnboardingForm({ onSubmitted }: Options) {
     fields: {
       firstName: register('firstName'),
       lastName: register('lastName'),
-      phone: register('phone'),
+      phone: register('phone', { onChange: keepPhonePrefix }),
       corporationNumber: register('corporationNumber', { onBlur: handleCorporationNumberBlur }),
     },
     errors: formState.errors,
