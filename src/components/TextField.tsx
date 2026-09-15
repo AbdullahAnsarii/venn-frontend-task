@@ -26,16 +26,18 @@ export function TextField({ label, error, hint, id, ...inputProps }: TextFieldPr
         aria-describedby={describedBy}
         {...inputProps}
       />
-      {hint && (
-        <p id={hintId} className={styles.hint} role="status">
-          {hint}
-        </p>
-      )}
-      {error && (
-        <p id={errorId} className={styles.error} role="alert">
-          {error}
-        </p>
-      )}
+      <div className={styles.message}>
+        {hint && (
+          <p id={hintId} className={styles.hint} role="status">
+            {hint}
+          </p>
+        )}
+        {error && (
+          <p id={errorId} className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+      </div>
     </div>
   )
 }

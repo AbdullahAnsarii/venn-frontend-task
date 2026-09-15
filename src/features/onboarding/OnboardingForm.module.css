@@ -1,22 +1,21 @@
 .fields {
   display: grid;
-  gap: 28px;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 28px;
+  column-gap: 28px;
 }
 
 .formError {
-  margin: 24px 0 0;
+  margin: 8px 0 0;
   color: var(--color-error);
 }
 
 .submit {
   width: 100%;
-  margin-top: 36px;
+  margin-top: 12px;
 }
 
 @media (max-width: 600px) {
