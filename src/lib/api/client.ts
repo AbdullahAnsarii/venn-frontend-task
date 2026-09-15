@@ -25,11 +25,12 @@ type RequestOptions = {
 
 export async function request(path: string, { method = 'GET', body, signal }: RequestOptions = {}) {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const abort = () => controller.abort()
+  const timer = setTimeout(abort, REQUEST_TIMEOUT_MS)
   if (signal?.aborted) {
-    controller.abort()
+    abort()
   }
-  signal?.addEventListener('abort', () => controller.abort(), { once: true })
+  signal?.addEventListener('abort', abort, { once: true })
 
   try {
     return await fetch(`${API_BASE_URL}${path}`, {
@@ -40,6 +41,7 @@ export async function request(path: string, { method = 'GET', body, signal }: Re
     })
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', abort)
   }
 }
 
