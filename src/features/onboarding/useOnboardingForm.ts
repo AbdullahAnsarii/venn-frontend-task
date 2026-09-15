@@ -17,6 +17,17 @@ const CORPORATION_NUMBER_UNAVAILABLE =
   "We couldn't verify the corporation number. Please try again."
 const SUBMIT_FAILED = 'Something went wrong while submitting. Please try again.'
 
+const apiMessageFields: Array<[RegExp, keyof OnboardingValues]> = [
+  [/first name/i, 'firstName'],
+  [/last name/i, 'lastName'],
+  [/phone/i, 'phone'],
+  [/corporation/i, 'corporationNumber'],
+]
+
+function fieldForApiMessage(message: string) {
+  return apiMessageFields.find(([pattern]) => pattern.test(message))?.[1]
+}
+
 type Options = {
   onSubmitted: () => void
 }
@@ -67,7 +78,14 @@ export function useOnboardingForm({ onSubmitted }: Options) {
       await submitProfileDetails(values)
       onSubmitted()
     } catch (error) {
-      setFormError(error instanceof ApiError ? error.message : SUBMIT_FAILED)
+      const message = error instanceof ApiError ? error.message : SUBMIT_FAILED
+      const field =
+        error instanceof ApiError && error.status === 400 ? fieldForApiMessage(message) : undefined
+      if (field) {
+        setError(field, { type: 'server', message }, { shouldFocus: true })
+      } else {
+        setFormError(message)
+      }
     }
   })
 
