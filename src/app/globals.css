@@ -1,0 +1,24 @@
+:root {
+  --color-bg: #f7f7f7;
+  --color-surface: #ffffff;
+  --color-border: #d6d6d6;
+  --color-border-hover: #b0b0b0;
+  --color-text: #111111;
+  --color-text-muted: #666666;
+  --color-error: #e5322d;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}

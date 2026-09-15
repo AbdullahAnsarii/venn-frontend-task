@@ -1,7 +1,5 @@
+import { Onboarding } from '@/features/onboarding/Onboarding'
+
 export default function Home() {
-  return (
-    <main>
-      <div>Hello world!</div>
-    </main>
-  )
+  return <Onboarding />
 }
