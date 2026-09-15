@@ -1,11 +1,12 @@
 .fields {
   display: grid;
+  gap: 12px;
 }
 
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 28px;
+  gap: 12px 28px;
 }
 
 .formError {
