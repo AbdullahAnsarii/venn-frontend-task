@@ -1,10 +1,8 @@
 # Onboarding form
 
-[![CI](https://github.com/AbdullahAnsarii/venn-frontend-task/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdullahAnsarii/venn-frontend-task/actions/workflows/ci.yml)
-
 Front end task for Venn.
 
-Live preview:
+Live preview: https://venn-frontend-task.vercel.app/
 
 ## Running it
 
