@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { ApiError } from '@/lib/api/client'
 import { submitProfileDetails } from '@/lib/api/profileDetails'
 import { PHONE_PREFIX } from '@/lib/phone'
-import { onboardingSchema, type OnboardingValues } from './onboardingSchema'
+import { onboardingSchema, type OnboardingValues } from '../onboardingSchema'
 import { useCorporationNumberValidation } from './useCorporationNumberValidation'
 
 const defaultValues: OnboardingValues = {

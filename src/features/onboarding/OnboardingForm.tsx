@@ -5,7 +5,7 @@ import { Button } from '@/components/Button'
 import { TextField } from '@/components/TextField'
 import layout from './Onboarding.module.css'
 import styles from './OnboardingForm.module.css'
-import { useOnboardingForm } from './useOnboardingForm'
+import { useOnboardingForm } from './hooks/useOnboardingForm'
 
 type OnboardingFormProps = {
   onSubmitted: () => void
