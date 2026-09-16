@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    env: { NEXT_PUBLIC_API_BASE_URL: 'https://api.example.com' },
     setupFiles: ['./src/test/setup.ts'],
   },
 })
