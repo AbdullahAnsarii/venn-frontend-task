@@ -1,7 +1,8 @@
-import { isValidNumberForRegion } from 'libphonenumber-js'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 
 export const PHONE_PREFIX = '+1'
 
 export function isCanadianPhoneNumber(value: string): boolean {
-  return isValidNumberForRegion(value, 'CA')
+  const phoneNumber = parsePhoneNumberFromString(value, 'CA')
+  return phoneNumber?.country === 'CA' && phoneNumber.isValid()
 }
